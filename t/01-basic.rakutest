@@ -20,7 +20,7 @@ my @tests is default(Nil) =
   "2.0.2-zip+foo.bar", 2,   0,   2, ("zip",),  <foo bar>,
 ;
 
-plan 2 * (@tests / 6) + 11;
+plan 2 * (@tests / 6) + 12;
 
 my @versions;
 for @tests -> $spec, $major, $minor, $patch, @pre-release, @build {
@@ -153,5 +153,8 @@ throws-like { Version::Conan.new("1.2.3+foo..bar") }, X::AdHoc,
   message => "Build info may not contain empty elements";
 throws-like { Version::Conan.new("1.2.3+04") }, X::AdHoc,
   message => "Build info may not contain leading zeroes";
+
+throws-like { Version::Conan.new("1.2.3").inc(3) }, X::AdHoc,
+  message => "Part 3 is not a valid index for incrementing";
 
 # vim: expandtab shiftwidth=4

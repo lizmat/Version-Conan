@@ -105,6 +105,15 @@ Returns a `List` with the build tokens.
 OTHER METHODS
 =============
 
+inc
+---
+
+```raku
+say Version::Conan.new("1.0").inc(0);  # Version::Conan.new("2.0")
+```
+
+Returns a newly instantiated `Version::Conan` object with the indicated part of the version information incremented, starting with "0" for the major version part, "1" for the minor, etc.
+
 cmp
 ---
 
