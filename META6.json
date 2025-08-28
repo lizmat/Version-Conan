@@ -1,0 +1,34 @@
+{
+  "auth": "zef:lizmat",
+  "authors": [
+    "Elizabeth Mattijsen"
+  ],
+  "build-depends": [
+  ],
+  "depends": [
+  ],
+  "description": "Implement Conan Version logic",
+  "license": "Artistic-2.0",
+  "name": "Version::Conan",
+  "provides": {
+    "Version::Conan": "lib/Version/Conan.rakumod"
+  },
+  "raku": "6.d",
+  "resources": [
+  ],
+  "source-url": "https://github.com/lizmat/Version-Conan.git",
+  "support": {
+    "bugtracker": "https://github.com/lizmat/Version-Conan/issues",
+    "email": "liz@raku.rocks",
+    "source": "https://github.com/lizmat/Version-Conan.git"
+  },
+  "tags": [
+    "VERSION",
+    "SEMANTIC",
+    "SEMVER",
+    "CONAN"
+  ],
+  "test-depends": [
+  ],
+  "version": "0.0.1"
+}

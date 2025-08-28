@@ -1,0 +1,4 @@
+.precomp/
+/Version-Conan-*
+/releases/
+*.rakucov
