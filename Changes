@@ -1,6 +1,8 @@
 Revision history for Version::Conan
 
 {{$NEXT}}
+    - Make Version::Conan a subclass of Version::Semverish
+    - Gut all the code that is now being handled by Version::Semverish
 
 0.0.2  2025-08-31T14:42:05+02:00
     - Add method "as-generic-range'
