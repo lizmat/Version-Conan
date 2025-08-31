@@ -1,6 +1,8 @@
 Revision history for Version::Conan
 
 {{$NEXT}}
+
+0.0.3  2025-08-31T21:58:10+02:00
     - Make Version::Conan a subclass of Version::Semverish
     - Gut all the code that is now being handled by Version::Semverish
 
