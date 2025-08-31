@@ -1,0 +1,40 @@
+use Test;
+use Version::Conan;
+
+my @tests =
+  "*",               ">= 0.0.0               ", "0.0.0  0.0.1      ",
+  "1.2",             "== 1.2                 ", "1.2               ",
+  ">=1.0 <2.0",      ">= 1.0  < 2.0          ", "1.0    1.2.3  1.9 ",
+  "~1",              ">= 1    < 2            ", "1.3    1.8.1      ",
+  "^1.2",            ">= 1.2  < 2            ", "1.2.1  1.3    1.51",
+  ">1 <2.0 || ^3.2", "> 1  < 2.0  >= 3.2  < 4", "                  ",
+  "1.2.3.*",         "> 1.2.3                ", "1.2.3.5  1.2.3.abc",
+
+  "*, include_prerelease=True", ">= 0.0.0", "0.0.0  0.0.1",
+;
+
+
+plan @tests / 3;
+
+for @tests -> $range, $list, $ok {
+    subtest "$range -> $list" => {
+        my $got      := Version::Conan.as-generic-range($range);
+        my $expected := $list.words.map(-> $c, $v {
+            $c, Version::Conan.new($v)
+        }).flat.Slip;
+
+        is-deeply $got, $expected, "did '$range' expand ok";
+
+        my @vok = $ok.words.map({ Version::Conan.new($_) });
+        ok @vok.are(Version::Conan), "all @vok.elems() versions are ok";
+
+        for $expected -> $comparator, $version {
+            is-deeply ([&&] @vok.map({ ."$comparator"($version) })), True,
+              "did '$comparator $version' compare ok";
+        }
+
+        done-testing;
+    }
+}
+
+# vim: expandtab shiftwidth=4

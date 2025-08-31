@@ -72,12 +72,12 @@ say $sv.patch;  # 3
 
 Returns the patch value.
 
-parts
------
+version
+-------
 
 ```raku
 my $sv = Version::Conan.new("1.2.3.4");
-say $sv.parts;  # (1 2 3 4)
+say $sv.version;  # (1 2 3 4)
 ```
 
 Returns the constituent parts of the version specification.
@@ -102,6 +102,20 @@ say $sv.build;  # (build data)
 
 Returns a `List` with the build tokens.
 
+CLASS METHODS
+=============
+
+as-generic-range
+----------------
+
+```raku
+say Version::Conan.as-generic-range('1.2');   # (== 1.2)
+say Version::Conan.as-generic-range('^1.2');  # (>= 1.2 < 2)
+say Version::Conan.as-generic-range('~1.2');  # (>= 1.2 < 1.3)
+```
+
+Convert an Conan version range specification to a generic range specification, consisting of a `Slip` with a string representing a comparator ("==", ">=", "<") and a `Version::Conan` object, possibly repeated.
+
 OTHER METHODS
 =============
 
@@ -109,10 +123,19 @@ inc
 ---
 
 ```raku
-say Version::Conan.new("1.0").inc(0);  # Version::Conan.new("2.0")
+say Version::Conan.new("1.0").inc;     # Version::Conan.new("1.1")
+say Version::Conan.new("1.0").inc(0);  # Version::Conan.new("2")
 ```
 
-Returns a newly instantiated `Version::Conan` object with the indicated part of the version information incremented, starting with "0" for the major version part, "1" for the minor, etc.
+Returns a newly instantiated `Version::Conan` object with the indicated part of the version information incremented, starting with "0" for the major version part, "1" for the minor, etc. Defaults to the highest possible part. Removes any lower version parts, and any pre-release or build information.
+
+```raku
+my $v = Version::Conan.new("1.0.2-pre+build");
+say $v.inc(:pre-release($v.pre-release), :build($v.build));
+# Version::Conan.new("1.1-pre+build");
+```
+
+Optionally takes `:pre-release` and `:build` arguments to add.
 
 cmp
 ---

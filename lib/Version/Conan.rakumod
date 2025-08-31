@@ -1,5 +1,5 @@
 #- Version::Conan -----------------------------------------------------------
-class Version::Conan:ver<0.0.1>:auth<zef:lizmat> {
+class Version::Conan:ver<0.0.2>:auth<zef:lizmat> {
     has @.version     is List;
     has @.pre-release is List;
     has @.build       is List;
@@ -21,7 +21,8 @@ class Version::Conan:ver<0.0.1>:auth<zef:lizmat> {
             }
 
             die "$type.tc() info contains illegal characters"
-              if $target.contains(/ <-[a..z 0..9 .]> /);
+              if $target.contains(/ <-[a..z 0..9 . *]> /);
+
             my @parts is List = $target.split(".");
             die "$type.tc() info may not contain empty elements"
               with @parts.first(* eq '');
@@ -42,13 +43,13 @@ class Version::Conan:ver<0.0.1>:auth<zef:lizmat> {
         self.bless(|%args)
     }
 
-    method inc(Version::Conan:D: UInt:D $part) {
+    method inc(Version::Conan:D: UInt:D $part = @!version.end) {
         my @version = @!version;
-        $part < @version.elems
-          ?? @version[$part]++
-          !! die "Part $part is not a valid index for incrementing";
+        die "Part $part is not a valid index for incrementing"
+          if $part >= @version.elems;
 
-        self.bless(:version(@version.List), :@!pre-release, :@!build)
+        @version[$part]++;
+        self.bless(:version(@version[0..$part]), |%_)
     }
 
     method major(Version::Conan:D:) { @!version[0]        }
@@ -71,9 +72,7 @@ class Version::Conan:ver<0.0.1>:auth<zef:lizmat> {
     }
 
     method eqv(Version::Conan:D: Version::Conan:D $other) {
-        (self!compare(@!version, $other.version, More)
-          || self!compare(@!pre-release, $other.pre-release, Less)
-          || self!compare(@!build, $other.build, More)) == Same
+        self.cmp($other) == Same
     }
 
     method !compare(@lefts, @rights, $default) {
@@ -112,7 +111,54 @@ class Version::Conan:ver<0.0.1>:auth<zef:lizmat> {
     }
 
     multi method ACCEPTS(Version::Conan:D: Version::Conan:D $other) {
-        self.cmp($other) == Same
+        self.eqv($other)
+    }
+
+    # https://docs.conan.io/2/tutorial/versioning/version_ranges.html#range-expressions
+    method as-generic-range(Version::Conan:U: Str:D $spec --> Slip:D) {
+
+        my sub slip-one(Str:D $version, Str:D $comparator = '==') {
+            ($comparator, Version::Conan.new($version)).Slip
+        }
+        my sub slip-range(Version::Conan:D $left, Version::Conan:D $right) {
+            ('>=', $left, '<', $right).Slip
+        }
+
+        if $spec eq ''
+          || $spec eq '*'
+          || $spec eq '*-'
+          || $spec.contains(/ ^ '*,' \s+ 'include_prerelease=True' $ /) {  # UNCOVERABLE
+            slip-one('0.0.0', '>=')
+        }
+        else {
+            $spec.split(/ <[ \s | ]>+ /, :skip-empty).map(-> $version is copy {
+                $version .= chop if $version.ends-with('-');  ##  XXX is this correct?
+
+                if $version.starts-with('~') {
+                    my $conan := Version::Conan.new($version.substr(1));
+                    slip-range($conan, $conan.inc)
+                }
+                elsif $version.starts-with('^') {  # UNCOVERABLE
+                    my $conan := Version::Conan.new($version.substr(1));
+                    slip-range($conan, $conan.inc($conan.version - 2))
+                }
+                elsif $version.starts-with('<=' | '>=') {  # UNCOVERABLE
+                    slip-one($version.substr(2), $version.substr(0,2))
+                }
+                elsif $version.starts-with('<' | '>') {  # UNCOVERABLE
+                    slip-one($version.substr(1), $version.substr(0,1))
+                }
+                elsif $version.starts-with('=') {  # UNCOVERABLE
+                    slip-one($version.substr(1))
+                }
+                elsif $version.ends-with('.*') {  # UNCOVERABLE
+                    slip-one($version.substr(0, *-2), '>')
+                }
+                else {
+                    slip-one($version)
+                }
+            }).Slip
+        }
     }
 }
 
@@ -170,13 +216,14 @@ my multi sub infix:«>=» (
 # infix op name to a method for comparison with the $a."=="($b) syntax,
 # without having to have the above infixes to be imported
 BEGIN {
-    Version::Conan.^add_method: "~~", { $^a.cmp($^b) == Same }  # UNCOVERABLE
     Version::Conan.^add_method: "==", { $^a.cmp($^b) == Same }  # UNCOVERABLE
     Version::Conan.^add_method: "!=", { $^a.cmp($^b) != Same }  # UNCOVERABLE
     Version::Conan.^add_method: "<",  { $^a.cmp($^b) == Less }  # UNCOVERABLE
     Version::Conan.^add_method: "<=", { $^a.cmp($^b) != More }  # UNCOVERABLE
     Version::Conan.^add_method: ">",  { $^a.cmp($^b) == More }  # UNCOVERABLE
     Version::Conan.^add_method: ">=", { $^a.cmp($^b) != Less }  # UNCOVERABLE
+
+    Version::Conan.^add_method: "~~", { $^b.ACCEPTS($^a) }  # UNCOVERABLE
 }
 
 # vim: expandtab shiftwidth=4

@@ -1,6 +1,10 @@
 Revision history for Version::Conan
 
 {{$NEXT}}
+    - Add method "as-generic-range'
+    - Make argument to method "inc" optional
+    - Make method "inc" *not* copy pre-release and build info
+      by default
 
 0.0.1  2025-08-28T19:42:08+02:00
     - Initial version

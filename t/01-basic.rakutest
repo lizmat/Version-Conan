@@ -20,7 +20,7 @@ my @tests is default(Nil) =
   "2.0.2-zip+foo.bar", 2,   0,   2, ("zip",),  <foo bar>,
 ;
 
-plan 2 * (@tests / 6) + 12;
+plan 2 * (@tests / 6) + 13;
 
 my @versions;
 for @tests -> $spec, $major, $minor, $patch, @pre-release, @build {
@@ -128,8 +128,10 @@ for @versions.skip -> $right {
 is Version::Conan.new("v1.0.0"), Version::Conan.new("1.0.0"),
   'is leading "v" ignored';
 
-is-deeply Version::Conan.new("1.0.0").inc(1), Version::Conan.new("1.1.0"),
+is-deeply Version::Conan.new("1.2.3").inc, Version::Conan.new("1.2.4"),
   'right part got incremented';
+is-deeply Version::Conan.new("1.2.3").inc(1), Version::Conan.new("1.3"),
+  'right part got incremented for 1';
 
 throws-like { Version::Conan.new("") }, X::AdHoc,
   message => "Version can not be empty";
